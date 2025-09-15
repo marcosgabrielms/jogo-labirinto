@@ -1,4 +1,4 @@
-#include "includes/display_oled/display_oled.h"
+#include "inc/display_oled/display_oled.h"
 
 // Estrutura do display OLED
 ssd1306_t ssd;
@@ -37,7 +37,8 @@ void display_mensagem(const char *linha1, const char *linha2, const char *linha3
 // Inicialização do display OLED
 void inicializacao_display()
 {
-    i2c_init(i2c1, ssd1306_i2c_clock * 5000);
+    // CORREÇÃO: Ajustado o clock do I2C para 400kHz (padrão)
+    i2c_init(i2c1, 400 * 1000); 
     gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
     gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
     gpio_pull_up(I2C_SDA);

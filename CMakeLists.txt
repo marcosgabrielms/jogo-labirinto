@@ -4,7 +4,6 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
 if(WIN32)
     set(USERHOME $ENV{USERPROFILE})
 else()
@@ -17,7 +16,7 @@ set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
 if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
-# ====================================================================================
+
 set(PICO_BOARD pico_w CACHE STRING "Board type")
 
 include(pico_sdk_import.cmake)
@@ -28,11 +27,11 @@ pico_sdk_init()
 
 add_executable(jogo_labirinto
     src/jogo_labirinto.c
-    includes/display_oled/ssd1306_i2c.c
-    includes/display_oled/display_oled.c
-    includes/matriz_LED/matriz_LED.c
-    includes/logica_labirinto/logica_labirinto.c
-    includes/mpu6050/mpu6050.c
+    inc/display_oled/ssd1306_i2c.c
+    inc/display_oled/display_oled.c
+    inc/logica_labirinto/logica_labirinto.c
+    inc/matriz_LED/matriz_LED.c
+    inc/mpu6050/mpu6050.c
 )
 
 pico_set_program_name(jogo_labirinto "jogo_labirinto")
@@ -48,8 +47,6 @@ target_link_libraries(jogo_labirinto
     hardware_i2c
     hardware_pio
     hardware_clocks
-    hardware_adc
-    hardware_pwm
 )
 
 target_include_directories(jogo_labirinto PRIVATE

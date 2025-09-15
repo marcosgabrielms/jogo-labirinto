@@ -6,7 +6,7 @@
 #include <string.h>
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
-#include "includes/display_oled/ssd1306.h"
+#include "inc/display_oled/ssd1306.h"
 
 // Definição do pino SDA e SCL do display OLED
 #define I2C_SDA 14

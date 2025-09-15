@@ -1,4 +1,4 @@
-#include "includes/matriz_LED/matriz_LED.h"
+#include "inc/matriz_LED/matriz_LED.h"
 
 // Declaração do buffer de pixels que formam a matriz e variáveis para uso da máquina PIO.
 npLED_t leds[LED_COUNT];

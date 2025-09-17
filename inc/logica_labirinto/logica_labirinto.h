@@ -18,5 +18,6 @@ void carregar_nivel();
 void mover_jogador(int dx, int dy);
 void desenhar_labirinto();
 void verificar_vitoria();
+void jogo_loop();   // <-- novo
 
 #endif

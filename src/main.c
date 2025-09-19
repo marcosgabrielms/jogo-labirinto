@@ -12,28 +12,19 @@
 int main() {
     stdio_init_all();
 
-    // Inicializa matriz de LEDs
+    // Inicializa a matriz de LEDs
     npInit(LED_PIN);
-    npClear();
-    npWrite();
 
-    // Inicializa display OLED
+    // Inicializa o display OLED
     inicializacao_display();
 
-    // Inicializa I2C
-    i2c_init(i2c0, 400 * 1000);
-    gpio_set_function(I2C0_SDA_PIN, GPIO_FUNC_I2C);
-    gpio_set_function(I2C0_SCL_PIN, GPIO_FUNC_I2C);
-    gpio_pull_up(I2C0_SDA_PIN);
-    gpio_pull_up(I2C0_SCL_PIN);
+    // Inicializa o sensor MPU6050 (que por sua vez inicializa o I2C)
+    inicializar_mpu6050(i2c0);
 
-    // Inicializa MPU6050
-    mpu6050_init(i2c0);
-
-    // Inicializa jogo
+    // Inicializa as variáveis do jogo
     inicializar_jogo();
 
-    // Loop principal do jogo
+    // Inicia o loop principal do jogo
     jogo_loop();
 
     return 0;

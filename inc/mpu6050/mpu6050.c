@@ -1,46 +1,26 @@
 #include "inc/mpu6050/mpu6050.h"
 
-// Função auxiliar para escrever em um registrador
-void mpu6050_write_register(i2c_inst_t *i2c, uint8_t reg, uint8_t data) {
-    uint8_t buf[] = {reg, data};
-    i2c_write_blocking(i2c, MPU6050_ADDR, buf, 2, false);
+void inicializar_mpu6050(i2c_inst_t *i2c_instance)
+{
+    i2c_init(i2c_instance, 400 * 1000);
+    gpio_set_function(MPU6050_SDA_PIN, GPIO_FUNC_I2C);
+    gpio_set_function(MPU6050_SCL_PIN, GPIO_FUNC_I2C);
+    gpio_pull_up(MPU6050_SDA_PIN);
+    gpio_pull_up(MPU6050_SCL_PIN);
+
+    uint8_t buf[] = {MPU6050_REG_PWR_MGMT_1, 0x00};
+    i2c_write_blocking(i2c_instance, MPU6050_ADDR, buf, 2, false);
 }
 
-void mpu6050_init(i2c_inst_t *i2c) {
-    // Reseta o dispositivo para limpar configurações antigas
-    mpu6050_write_register(i2c, MPU6050_PWR_MGMT_1, 0x80);
-    sleep_ms(100);
+void leitura_acelero_mpu6050(i2c_inst_t *i2c_instance, mpu6050_accel_data_t *accel_data)
+{
+    uint8_t buffer[6];
 
-    // Acorda o sensor e configura a fonte de clock
-    mpu6050_write_register(i2c, MPU6050_PWR_MGMT_1, 0x00);
-    sleep_ms(100);
+    uint8_t reg = MPU6050_REG_ACCEL_XOUT_H;
+    i2c_write_blocking(i2c_instance, MPU6050_ADDR, &reg, 1, true);
+    i2c_read_blocking(i2c_instance, MPU6050_ADDR, buffer, 6, false);
 
-    // Configura a taxa de amostragem (Sample Rate) para 1KHz
-    mpu6050_write_register(i2c, MPU6050_SMPLRT_DIV, 0x07);
-    
-    // Configura o Digital Low Pass Filter (DLPF)
-    mpu6050_write_register(i2c, MPU6050_CONFIG, 0x00);
-    
-    // Configura o giroscópio para a escala de +/- 2000 graus/s
-    mpu6050_write_register(i2c, MPU6050_GYRO_CONFIG, 0x18);
-    
-    // Configura o acelerômetro para a escala de +/- 2g
-    mpu6050_write_register(i2c, MPU6050_ACCEL_CONFIG, 0x00);
-
-    sleep_ms(100); // Delay final para garantir que tudo estabilizou
-}
-
-void mpu6050_read_raw(i2c_inst_t *i2c, int16_t accel[3], int16_t gyro[3], int16_t *temp) {
-    uint8_t buffer[14];
-    uint8_t reg = MPU6050_ACCEL_XOUT_H;
-    i2c_write_blocking(i2c, MPU6050_ADDR, &reg, 1, true);
-    i2c_read_blocking(i2c, MPU6050_ADDR, buffer, 14, false);
-
-    accel[0] = (buffer[0] << 8) | buffer[1];
-    accel[1] = (buffer[2] << 8) | buffer[3];
-    accel[2] = (buffer[4] << 8) | buffer[5];
-    *temp = (buffer[6] << 8) | buffer[7];
-    gyro[0] = (buffer[8] << 8) | buffer[9];
-    gyro[1] = (buffer[10] << 8) | buffer[11];
-    gyro[2] = (buffer[12] << 8) | buffer[13];
+    accel_data->x = (int16_t)((buffer[0] << 8) | buffer[1]);
+    accel_data->y = (int16_t)((buffer[2] << 8) | buffer[3]);
+    accel_data->z = (int16_t)((buffer[4] << 8) | buffer[5]);
 }

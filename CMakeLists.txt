@@ -41,7 +41,6 @@ pico_sdk_init()
 
 add_executable(jogo_labirinto
     src/main.c
-    inc/logica_labirinto/jogo_labirinto.c
     inc/display_oled/ssd1306_i2c.c
     inc/display_oled/display_oled.c
     inc/logica_labirinto/logica_labirinto.c

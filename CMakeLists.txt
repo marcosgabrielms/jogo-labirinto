@@ -46,6 +46,8 @@ add_executable(jogo_labirinto
     inc/logica_labirinto/logica_labirinto.c
     inc/matriz_LED/matriz_LED.c
     inc/mpu6050/mpu6050.c
+    inc/wifi_pico/wifi.c
+    inc/servidor_railway/conexao.c
 )
 
 pico_set_program_name(jogo_labirinto "jogo_labirinto")
@@ -61,10 +63,13 @@ target_link_libraries(jogo_labirinto
     hardware_i2c
     hardware_pio
     hardware_clocks
+    pico_cyw43_arch_lwip_threadsafe_background
 )
 
 target_include_directories(jogo_labirinto PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
+    inc/wifi_pico
+    inc/servidor_railway
 )
 
 pico_add_extra_outputs(jogo_labirinto)

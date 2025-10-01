@@ -1,22 +1,39 @@
 #include "conexao.h"
+#include <string.h> // Adicionado para strstr
 
-// Callback para a resposta do servidor
+// --- ALTERAÇÃO INICIADA ---
+// Callback para a resposta do servidor modificado para verificar a resposta HTTP
 static err_t callback_resposta_recebida(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err) {
     if (!p) {
+        printf("DIAGNOSTICO: Conexao fechada pelo servidor.\n");
         tcp_close(pcb);
         return ERR_OK;
     }
+
+    printf("DIAGNOSTICO: Resposta do servidor recebida:\n---\n%.*s\n---\n", p->len, (char *)p->payload);
+
+    if (strstr((char *)p->payload, "HTTP/1.1 200 OK") != NULL) {
+        printf("DIAGNOSTICO: SUCESSO! Servidor confirmou o recebimento dos dados.\n");
+    } else {
+        printf("DIAGNOSTICO: AVISO! Resposta inesperada do servidor.\n");
+    }
+
     pbuf_free(p);
+    tcp_close(pcb);
     return ERR_OK;
 }
+// --- ALTERAÇÃO FINALIZADA ---
 
-// Callback para quando a conexão TCP é estabelecida
+// --- ALTERAÇÃO INICIADA ---
+// Callback de conexão modificado para melhor tratamento de erros e liberação de memória
 static err_t callback_conectado(void *arg, struct tcp_pcb *pcb, err_t err) {
     DadosJogoCompleto *dados_recebidos = (DadosJogoCompleto *)arg;
     if (err != ERR_OK) {
         printf("DIAGNOSTICO: Falha ao conectar no socket TCP. Erro LwIP: %d\n", err);
         tcp_abort(pcb);
-        free(dados_recebidos);
+        if (dados_recebidos) {
+            free(dados_recebidos);
+        }
         return err;
     }
     printf("DIAGNOSTICO: Conexao TCP estabelecida. Enviando dados...\n");
@@ -51,20 +68,33 @@ static err_t callback_conectado(void *arg, struct tcp_pcb *pcb, err_t err) {
              "Content-Length: %d\r\n"
              "Connection: close\r\n\r\n%s",
              PROXY_HOST, strlen(corpo_json), corpo_json);
+             
+    printf("DIAGNOSTICO: Enviando requisicao HTTP:\n---\n%s\n---\n", requisicao);
 
     cyw43_arch_lwip_begin();
-    tcp_write(pcb, requisicao, strlen(requisicao), TCP_WRITE_FLAG_COPY);
-    tcp_output(pcb);
+    err_t write_err = tcp_write(pcb, requisicao, strlen(requisicao), TCP_WRITE_FLAG_COPY);
+    if (write_err == ERR_OK) {
+        tcp_output(pcb);
+    } else {
+        printf("DIAGNOSTICO: Erro ao escrever para o socket TCP. Erro LwIP: %d\n", write_err);
+    }
     cyw43_arch_lwip_end();
     
-    free(dados_recebidos);
+    if (dados_recebidos) {
+        free(dados_recebidos);
+    }
     return ERR_OK;
 }
+// --- ALTERAÇÃO FINALIZADA ---
 
-// Função principal de envio de dados
+// --- ALTERAÇÃO INICIADA ---
+// Função de envio de dados modificada para corrigir potencial vazamento de memória
 void enviar_dados_para_nuvem(const DadosJogoCompleto *dados_a_enviar) {
     DadosJogoCompleto* copia_dados = (DadosJogoCompleto*)malloc(sizeof(DadosJogoCompleto));
-    if (!copia_dados) return;
+    if (!copia_dados) {
+        printf("DIAGNOSTICO: Erro de alocacao de memoria para copia_dados.\n");
+        return;
+    }
     memcpy(copia_dados, dados_a_enviar, sizeof(DadosJogoCompleto));
 
     printf("DIAGNOSTICO: Tentando conectar ao servidor em %s:%d\n", PROXY_HOST, PROXY_PORT);
@@ -74,6 +104,7 @@ void enviar_dados_para_nuvem(const DadosJogoCompleto *dados_a_enviar) {
 
     struct tcp_pcb *pcb = tcp_new_ip_type(IPADDR_TYPE_V4);
     if (!pcb) {
+        printf("DIAGNOSTICO: Nao foi possivel criar o pcb TCP.\n");
         free(copia_dados);
         return;
     }
@@ -85,5 +116,10 @@ void enviar_dados_para_nuvem(const DadosJogoCompleto *dados_a_enviar) {
 
     if (err != ERR_OK) {
         printf("DIAGNOSTICO: Erro imediato ao chamar tcp_connect. Erro LwIP: %d\n", err);
+        tcp_abort(pcb);
+        if (copia_dados) {
+            free(copia_dados);
+        }
     }
 }
+// --- ALTERAÇÃO FINALIZADA ---

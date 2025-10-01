@@ -1,8 +1,8 @@
 #ifndef WIFI_H
 #define WIFI_H
 
-#define NOME_WIFI "Sabunete"
-#define SENHA_WIFI "alastralis"
+#define NOME_WIFI "MARCOS"
+#define SENHA_WIFI "Piy211940"
 
 int conexao_wifi();
 
